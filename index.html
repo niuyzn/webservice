@@ -3,6 +3,239 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>가상 휴대폰 어플</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    
+    /* 휴대폰 프레임 */
+    .phone-frame {
+      width: 360px;
+      height: 720px;
+      background: #1c1c1e;
+      border-radius: 44px;
+      padding: 12px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+      position: relative;
+    }
+    .notch {
+      width: 120px;
+      height: 24px;
+      background: #1c1c1e;
+      border-bottom-left-radius: 14px;
+      border-bottom-right-radius: 14px;
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+    }
+    
+    /* 휴대폰 액정 */
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+      border-radius: 34px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 🔔 상단 푸시 알림 배너 (애니메이션) */
+    .push-banner {
+      position: absolute;
+      top: -90px;
+      left: 12px;
+      right: 12px;
+      height: 64px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(10px);
+      border-radius: 18px;
+      padding: 12px 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 90;
+      transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .push-banner.active {
+      top: 40px; /* 알림 발생 시 아래로 내려옴 */
+    }
+    .push-icon {
+      width: 36px;
+      height: 36px;
+      background: #007aff;
+      border-radius: 10px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .push-text { font-size: 12px; }
+    .push-title { font-weight: bold; color: #1c1c1e; margin-bottom: 2px; }
+    .push-desc { color: #636366; }
+
+    /* 각 화면 영역 */
+    .screen-view {
+      flex: 1;
+      padding: 60px 20px 20px;
+      display: none;
+      overflow-y: auto;
+    }
+    .screen-view.active { display: block; }
+
+    /* 어플 내부 UI 요소 */
+    .card {
+      background: #f2f2f7;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    .card:active { transform: scale(0.97); }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      background: #007aff;
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .btn:active { background: #0056b3; }
+
+    /* 하단 네비게이션 탭 바 */
+    .nav-bar {
+      height: 65px;
+      border-top: 1px solid #e5e5ea;
+      display: flex;
+      background: #ffffff;
+      padding-bottom: 10px;
+    }
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #8e8e93;
+      cursor: pointer;
+      user-select: none;
+    }
+    .nav-item.active { color: #007aff; font-weight: bold; }
+    .nav-icon { font-size: 22px; margin-bottom: 2px; }
+  </style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <div class="notch"></div>
+  
+  <div class="phone-screen">
+    <!-- 상단 푸시 알림 팝업 -->
+    <div class="push-banner" id="pushBanner">
+      <div class="push-icon">🔔</div>
+      <div class="push-text">
+        <div class="push-title" id="pushTitle">알림 제목</div>
+        <div class="push-desc" id="pushDesc">알림 내용이 표시됩니다.</div>
+      </div>
+    </div>
+
+    <!-- 첫 번째 화면: 홈 -->
+    <div class="screen-view active" id="screenHome">
+      <h2 style="margin-bottom: 15px;">홈 화면</h2>
+      <div class="card" onclick="showNotification('카드 클릭 완료', '피그마 화면 요소를 성공적으로 눌렀습니다!')">
+        <div style="font-weight: bold; margin-bottom: 4px;">💬 터치 가능한 카드</div>
+        <div style="font-size: 13px; color: #666;">이 카드를 누르면 상단에서 푸시 알림이 나옵니다.</div>
+      </div>
+
+      <button class="btn" onclick="showNotification('시스템 알림', '새로운 결제 요청이 도달했습니다.')">
+        알림 테스트 버튼
+      </button>
+    </div>
+
+    <!-- 두 번째 화면: 마이페이지 -->
+    <div class="screen-view" id="screenProfile">
+      <h2 style="margin-bottom: 15px;">마이페이지</h2>
+      <p style="color: #666; line-height: 1.5; margin-bottom: 15px;">클릭에 따라 실제 어플처럼 화면이 전환됩니다.</p>
+      
+      <button class="btn" style="background: #ff3b30;" onclick="requestRealBrowserPush()">
+        실제 기기(브라우저) 알림 권한 켜기
+      </button>
+    </div>
+
+    <!-- 하단 네비게이션 바 -->
+    <div class="nav-bar">
+      <div class="nav-item active" onclick="switchTab('screenHome', this)">
+        <span class="nav-icon">🏠</span>홈
+      </div>
+      <div class="nav-item" onclick="switchTab('screenProfile', this)">
+        <span class="nav-icon">👤</span>마이페이지
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 1. 하단 탭 클릭 시 화면 전환
+  function switchTab(screenId, tabElement) {
+    document.querySelectorAll('.screen-view').forEach(view => view.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+    
+    document.getElementById(screenId).classList.add('active');
+    tabElement.classList.add('active');
+  }
+
+  // 2. 가상 휴대폰 화면 내 상단 알림(Toast Push) 띄우기
+  let timer;
+  function showNotification(title, desc) {
+    const banner = document.getElementById('pushBanner');
+    document.getElementById('pushTitle').innerText = title;
+    document.getElementById('pushDesc').innerText = desc;
+
+    banner.classList.add('active');
+
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      banner.classList.remove('active');
+    }, 3000); // 3초 후 알림이 다시 올라감
+  }
+
+  // 3. 실제 컴퓨터/스마트폰 상단에 뜨는 기기 알림 (선택기능)
+  function requestRealBrowserPush() {
+    if ('Notification' in window) {
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          new Notification('어플 알림', { body: '실제 스마트폰 브라우저 시스템 알림입니다!' });
+        } else {
+          alert('알림 권한이 거부되었습니다.');
+        }
+      });
+    }
+  }
+</script>
+
+</body>
+</html>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>가상 휴대폰 화면</title>
   <style>
     * {
